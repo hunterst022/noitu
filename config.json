@@ -1,0 +1,33 @@
+{
+  "tiktokUsername": "",
+  "host": "127.0.0.1",
+  "port": 3000,
+  "title1": "NỐI TỪ",
+  "title2": "ĐẠI CHIẾN",
+  "kicker": "THỬ THÁCH CẢ PHÒNG LIVE",
+  "subtitle": "Comment đúng — chuyển từ ngay!",
+  "syllables": 2,
+  "dictionaryMode": "loose",
+  "basePoints": 100,
+  "comboBonus": 20,
+  "comboWindowSec": 20,
+  "speedBonusSec": 5,
+  "speedBonus": 50,
+  "hintAfterSec": 20,
+  "skipAfterSec": 60,
+  "chainShown": 5,
+  "voice": {
+    "enabled": true,
+    "rate": 1.05,
+    "pitch": 1.15,
+    "volume": 1
+  },
+  "music": {
+    "enabled": true,
+    "volume": 0.22,
+    "file": ""
+  },
+  "sfxVolume": 0.7,
+  "welcome": true,
+  "blockDeadEnd": true
+}

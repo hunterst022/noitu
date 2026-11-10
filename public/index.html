@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nối Từ Đại Chiến</title>
+<style>
+  :root{
+    --bg1:#12062b; --bg2:#0b1d3a; --violet:#8b5cf6; --cyan:#22d3ee; --pink:#f472b6; --gold:#fbbf24;
+    --glass:rgba(255,255,255,.07); --stroke:rgba(255,255,255,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#05030f;font-family:"Be Vietnam Pro","Segoe UI",Roboto,Arial,sans-serif;color:#fff}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;flex:none;width:1080px;height:1920px;transform-origin:center center;overflow:hidden;
+    background:radial-gradient(900px 700px at 15% 8%,#4c1d95 0%,transparent 60%),
+               radial-gradient(900px 800px at 95% 90%,#0e7490 0%,transparent 60%),
+               linear-gradient(180deg,var(--bg1),var(--bg2));}
+  .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;animation:float 9s ease-in-out infinite}
+  .o1{width:380px;height:380px;background:#7c3aed;left:-100px;top:420px}
+  .o2{width:320px;height:320px;background:#06b6d4;right:-80px;top:1000px;animation-delay:-4s}
+  @keyframes float{50%{transform:translateY(-40px) scale(1.08)}}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(circle at 50% 45%,#000 20%,transparent 75%)}
+  #letters{position:absolute;inset:0;pointer-events:none}
+  .fl{position:absolute;font-weight:800;color:rgba(255,255,255,.08);animation:rise linear infinite}
+  @keyframes rise{from{transform:translateY(0) rotate(0)}to{transform:translateY(-2100px) rotate(40deg)}}
+  #fx{position:absolute;inset:0;pointer-events:none;z-index:50}
+
+  .col{position:absolute;left:50px;right:50px;top:250px;bottom:290px;display:flex;flex-direction:column;gap:14px}
+  .col>*{flex:none}
+
+  .badges{display:flex;justify-content:space-between;align-items:center}
+  .pill{padding:8px 20px;border-radius:999px;font-size:22px;font-weight:800;letter-spacing:2px;border:1px solid var(--stroke);background:var(--glass);backdrop-filter:blur(6px)}
+  .pill.live{background:linear-gradient(90deg,#ef4444,#f43f5e);border-color:transparent}
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#94a3b8;margin-right:10px;vertical-align:middle}
+  .dot.ok{background:#22c55e;box-shadow:0 0 12px #22c55e}.dot.wait{background:#f59e0b}.dot.demo{background:#a78bfa}
+
+  .title{text-align:center;margin-top:2px}
+  .kicker{font-size:22px;font-weight:700;letter-spacing:6px;color:#c4b5fd}
+  .t1{font-size:104px;font-weight:900;line-height:1;letter-spacing:2px;text-shadow:0 8px 40px rgba(139,92,246,.7)}
+  .t2{font-size:92px;font-weight:900;line-height:1;margin-top:-4px;background:linear-gradient(90deg,#fde68a,#f9a8d4 50%,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 24px rgba(244,114,182,.45))}
+  .sub{margin-top:8px;font-size:25px;font-weight:700;letter-spacing:3px;color:#bae6fd;text-transform:uppercase}
+
+  #chain{position:relative;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+  .card{display:flex;align-items:center;gap:20px;height:80px;padding:0 28px 0 16px;border-radius:30px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(8px);transition:all .5s}
+  .card .w{flex:1;text-align:center;min-width:0}
+  .card .word{font-size:40px;font-weight:900;line-height:1.05;white-space:nowrap}
+  .card .word b{background:linear-gradient(90deg,#67e8f9,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .card .who{font-size:21px;font-weight:600;color:#cbd5e1;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .pts{font-size:26px;font-weight:900;color:var(--gold);min-width:90px;text-align:right}
+  .card.old1{opacity:.78;transform:scale(.97)} .card.old2{opacity:.55;transform:scale(.94)} .card.old3{opacity:.35;transform:scale(.91)} .card.old4{opacity:.2;transform:scale(.88)}
+  .card.cur{height:100px;background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(34,211,238,.28));border:2px solid rgba(103,232,249,.9);box-shadow:0 0 38px rgba(34,211,238,.35),inset 0 0 30px rgba(255,255,255,.08)}
+  .card.cur .word{font-size:52px}
+  .card.bot .pts{display:none}
+  .card.enter{animation:enter .6s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes enter{from{transform:translateY(60px) scale(.8);opacity:0}}
+  .av{flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;overflow:hidden;border:3px solid rgba(255,255,255,.55);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .av img{width:100%;height:100%;object-fit:cover}
+
+  #prompt{position:relative;border-radius:34px;padding:18px 30px 14px;text-align:center;background:linear-gradient(135deg,rgba(15,23,42,.8),rgba(30,27,75,.8));border:1px solid var(--stroke);overflow:hidden}
+  .ptxt{display:flex;align-items:center;justify-content:center;gap:24px}
+  .plabel{font-size:26px;font-weight:800;letter-spacing:2px;color:#e0e7ff}
+  .tile{min-width:180px;padding:0 28px;height:92px;border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:72px;font-weight:900;text-transform:uppercase;background:linear-gradient(135deg,#8b5cf6,#22d3ee);box-shadow:0 10px 40px rgba(34,211,238,.45);animation:pulse 1.6s ease-in-out infinite}
+  .tile.pop{animation:tilepop .55s cubic-bezier(.2,1.5,.4,1)}
+  @keyframes pulse{50%{transform:scale(1.045)}}
+  @keyframes tilepop{from{transform:scale(.5) rotate(-8deg)}}
+  .bar{margin-top:12px;height:10px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+  .bar i{display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#22d3ee,#a78bfa);transform-origin:left}
+  .bar.warn i{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+  .hint{margin-top:6px;font-size:24px;font-weight:700;color:var(--gold);height:30px;letter-spacing:3px}
+  .note{font-size:20px;color:#94a3b8;font-weight:600}
+
+  #stats{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;padding:4px 0}
+  #stats div{border-right:1px solid var(--stroke)} #stats div:last-child{border:0}
+  #stats b{display:block;font-size:46px;font-weight:900;line-height:1}
+  #stats span{font-size:19px;font-weight:800;letter-spacing:3px;color:#a5b4fc}
+  #stats b.bump{animation:bump .4s}
+  @keyframes bump{40%{transform:scale(1.3);color:var(--gold)}}
+
+  #board{border-radius:30px;padding:12px 18px;background:rgba(8,12,30,.7);border:1px solid var(--stroke)}
+  .bt{font-size:22px;font-weight:900;letter-spacing:3px;text-align:center;color:var(--gold);margin-bottom:10px}
+  .rows{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .row{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:20px;background:rgba(255,255,255,.05);min-width:0}
+  .row .nm{font-size:20px;font-weight:700;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .sc{font-size:24px;font-weight:900;color:var(--gold)}
+  .row .md{font-size:26px;line-height:1}
+
+  #winner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);opacity:0;z-index:40;text-align:center;pointer-events:none;
+    padding:30px 56px 26px;border-radius:44px;background:linear-gradient(135deg,rgba(124,58,237,.92),rgba(8,145,178,.92));border:3px solid rgba(255,255,255,.7);box-shadow:0 0 90px rgba(167,139,250,.8)}
+  #winner.show{animation:win 2.3s ease forwards}
+  @keyframes win{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(.95)}}
+  #winner .av{margin:0 auto 10px;border-width:5px}
+  #winner .wn{font-size:44px;font-weight:900;max-width:640px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #winner .ww{font-size:76px;font-weight:900;line-height:1.1;color:#fef08a}
+  #winner .wp{font-size:40px;font-weight:900;color:#fff}
+
+  #banner{position:absolute;left:50px;right:50px;top:236px;z-index:45;text-align:center;font-size:30px;font-weight:800;padding:14px 20px;border-radius:24px;background:rgba(15,23,42,.88);border:1px solid var(--stroke);opacity:0;transform:translateY(-20px);transition:all .4s}
+  #banner.show{opacity:1;transform:none}
+
+  #start{position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(5,3,15,.88);cursor:pointer;text-align:center;padding:20px}
+  #start h2{font-size:34px} #start p{color:#94a3b8;max-width:520px;line-height:1.5}
+  #start button{font-size:22px;font-weight:800;padding:16px 40px;border:0;border-radius:99px;color:#fff;cursor:pointer;background:linear-gradient(90deg,#8b5cf6,#22d3ee)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <div class="grid"></div><div class="orb o1"></div><div class="orb o2"></div>
+    <div id="letters"></div>
+    <canvas id="fx" width="1080" height="1920"></canvas>
+    <div id="banner"></div>
+
+    <div class="col">
+      <div class="badges">
+        <div class="pill live">● LIVE GAME</div>
+        <div class="pill"><span class="dot" id="dot"></span><span id="stat">ĐANG KẾT NỐI</span></div>
+      </div>
+      <div class="title">
+        <div class="kicker" id="kicker"></div>
+        <div class="t1" id="t1"></div>
+        <div class="t2" id="t2"></div>
+        <div class="sub" id="sub"></div>
+      </div>
+      <div id="chain"></div>
+      <div id="prompt">
+        <div class="ptxt"><span class="plabel">BÌNH LUẬN NỐI TIẾP TỪ</span><span class="tile" id="tile">...</span></div>
+        <div class="bar" id="bar"><i id="barI"></i></div>
+        <div class="hint" id="hint"></div>
+        <div class="note">Người trả lời đúng sớm nhất thắng!</div>
+      </div>
+      <div id="stats">
+        <div><b id="sTurn">0</b><span>LƯỢT NỐI</span></div>
+        <div><b id="sPl">0</b><span>NGƯỜI CHƠI</span></div>
+        <div><b id="sCombo">0</b><span>COMBO</span></div>
+      </div>
+      <div id="board"><div class="bt">🏆 BẢNG VÀNG NỐI TỪ</div><div class="rows" id="rows"></div></div>
+    </div>
+
+    <div id="winner"></div>
+<div id="ytbox" style="position:fixed;left:-400px;top:0;width:200px;height:200px;opacity:.01;pointer-events:none"><div id="ytp"></div></div>
+  </div>
+</div>
+
+<div id="start">
+  <h2>🎮 Nối Từ Đại Chiến</h2>
+  <p>Bấm để bật <b>âm thanh, nhạc nền và giọng bình luận</b> (trình duyệt yêu cầu 1 lần bấm).</p>
+  <button>▶ BẮT ĐẦU</button>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (id) => document.getElementById(id);
+let cfg = { chainShown: 5, voice: { enabled: true }, music: { enabled: true, volume: .22, file: '' }, sfxVolume: .7, hintAfterSec: 20, skipAfterSec: 60 };
+let S = { chain: [], need: '', stats: { turns: 0, players: 0, combo: 0 }, board: [] };
+let wordStart = Date.now(), audioOn = false, lastNeed = '';
+
+/* ---------- scale stage ---------- */
+function fit() { const s = Math.min(innerWidth / 1080, innerHeight / 1920); $('stage').style.transform = `scale(${s})`; }
+addEventListener('resize', fit); fit();
+
+/* ---------- decor ---------- */
+(() => { const L = 'ABCDEFGHIKLMNOPQRSTUVXY', box = $('letters');
+  for (let i = 0; i < 26; i++) { const e = document.createElement('div'); e.className = 'fl'; e.textContent = L[i % L.length];
+    e.style.left = Math.random() * 1020 + 'px'; e.style.top = (1900 + Math.random() * 400) + 'px'; e.style.fontSize = (30 + Math.random() * 70) + 'px';
+    e.style.animationDuration = (22 + Math.random() * 30) + 's'; e.style.animationDelay = (-Math.random() * 40) + 's'; box.appendChild(e); } })();
+
+/* ---------- avatar ---------- */
+const hue = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+function avatar(name, url, size) {
+  const d = document.createElement('div'); d.className = 'av'; d.style.width = d.style.height = size + 'px'; d.style.fontSize = size * .45 + 'px';
+  const nm = String(name || '?').trim(); const ch = (nm.match(/\p{L}|\p{N}/u) || [Array.from(nm)[0] || '?'])[0].toUpperCase();
+  d.style.background = `linear-gradient(135deg,hsl(${hue(name)},70%,55%),hsl(${(hue(name) + 50) % 360},70%,42%))`; d.textContent = ch;
+  if (url) { const i = new Image(); i.referrerPolicy = 'no-referrer'; i.crossOrigin = 'anonymous'; i.onload = () => { d.textContent = ''; d.appendChild(i); }; i.src = url; }
+  return d;
+}
+
+/* ---------- render ---------- */
+function renderChain(animLast) {
+  const box = $('chain'); box.innerHTML = '';
+  const list = S.chain.slice(-cfg.chainShown);
+  list.forEach((e, idx) => {
+    const age = list.length - 1 - idx;
+    const c = document.createElement('div');
+    c.className = 'card' + (age === 0 ? ' cur' : ' old' + Math.min(age, 4)) + (e.bot ? ' bot' : '') + (age === 0 && animLast ? ' enter' : '');
+    c.appendChild(avatar(e.bot ? '⚙' : e.name, e.avatar, age === 0 ? 80 : 64));
+    const w = document.createElement('div'); w.className = 'w';
+    const parts = e.word.split(' '); const last = parts.pop();
+    w.innerHTML = `<div class="word">${esc(parts.join(' '))} <b>${esc(last)}</b></div><div class="who">✦ ${esc(e.bot ? 'Hệ thống' : e.name)}</div>`;
+    c.appendChild(w);
+    const p = document.createElement('div'); p.className = 'pts'; p.textContent = e.pts ? '⚡+' + e.pts : ''; c.appendChild(p);
+    box.appendChild(c);
+  });
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+function renderStats(bump) {
+  const set = (id, v) => { const el = $(id); if (el.textContent != v) { el.textContent = v; if (bump) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } } };
+  set('sTurn', S.stats.turns); set('sPl', S.stats.players); set('sCombo', S.stats.combo);
+}
+function renderBoard() {
+  const rows = $('rows'); rows.innerHTML = ''; const med = ['🥇', '🥈', '🥉'];
+  for (let i = 0; i < 3; i++) { const b = S.board[i]; const r = document.createElement('div'); r.className = 'row';
+    if (b) { r.innerHTML = `<div class="md">${med[i]}</div>`; r.appendChild(avatar(b.name, b.avatar, 50));
+      r.insertAdjacentHTML('beforeend', `<div class="nm">${esc(b.name)}</div><div class="sc">${b.score.toLocaleString('vi-VN')}</div>`); }
+    else r.innerHTML = `<div class="md">${med[i]}</div><div class="nm" style="opacity:.4">—</div>`;
+    rows.appendChild(r); }
+}
+function renderNeed(pop) {
+  const t = $('tile'); t.textContent = S.need;
+  if (pop) { t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop'); }
+  $('hint').textContent = '';
+}
+function setStatus(s) {
+  const m = { connected: ['ĐÃ KẾT NỐI TIKTOK', 'ok'], connecting: ['ĐANG KẾT NỐI...', 'wait'], reconnecting: ['KẾT NỐI LẠI...', 'wait'], demo: ['CHẾ ĐỘ DEMO', 'demo'], idle: ['CHƯA KẾT NỐI', ''], ended: ['LIVE ĐÃ KẾT THÚC', ''] }[s] || ['—', ''];
+  $('stat').textContent = m[0]; $('dot').className = 'dot ' + m[1];
+}
+function applyState(d, animLast, popNeed) {
+  if (d.cfg) { cfg = { ...cfg, ...d.cfg }; $('kicker').textContent = cfg.kicker; $('t1').textContent = cfg.title1; $('t2').textContent = cfg.title2; $('sub').textContent = cfg.subtitle; }
+  S.chain = d.chain; S.need = d.need; S.stats = d.stats; S.board = d.board; wordStart = Date.now() - d.elapsedMs;
+  if (d.tiktok) setStatus(d.tiktok);
+  if (d.music) { M = { ...M, ...d.music }; applyMusic(); }
+  renderChain(animLast); renderNeed(popNeed); renderStats(animLast); renderBoard();
+}
+
+/* ---------- progress bar ---------- */
+setInterval(() => {
+  const sec = (Date.now() - wordStart) / 1000, tot = cfg.skipAfterSec || 60;
+  const f = Math.max(0, 1 - sec / tot); $('barI').style.transform = `scaleX(${f})`;
+  $('bar').classList.toggle('warn', sec >= (cfg.hintAfterSec || 20));
+}, 100);
+
+/* ---------- confetti ---------- */
+const cv = $('fx'), cx = cv.getContext('2d'); let parts = [];
+function confetti(n = 70, x = 540, y = 1000) {
+  const cols = ['#fde68a', '#f9a8d4', '#67e8f9', '#a78bfa', '#86efac', '#fff'];
+  for (let i = 0; i < n; i++) parts.push({ x, y, vx: (Math.random() - .5) * 22, vy: -Math.random() * 22 - 4, g: .55, r: 6 + Math.random() * 9, c: cols[i % cols.length], a: 1, rot: Math.random() * 6, vr: (Math.random() - .5) * .5 });
+}
+(function loop() { cx.clearRect(0, 0, 1080, 1920);
+  parts = parts.filter((p) => p.a > 0.02);
+  for (const p of parts) { p.x += p.vx; p.y += p.vy; p.vy += p.g; p.rot += p.vr; p.a -= .012; cx.save(); cx.globalAlpha = Math.max(0, p.a); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillStyle = p.c; cx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); cx.restore(); }
+  requestAnimationFrame(loop); })();
+
+/* ---------- winner pop & banner ---------- */
+function showWinner(e) {
+  const w = $('winner'); w.className = ''; w.innerHTML = '';
+  w.appendChild(avatar(e.name, e.avatar, 150));
+  w.insertAdjacentHTML('beforeend', `<div class="wn">${esc(e.name)}</div><div class="ww">${esc(e.word)}</div><div class="wp">+${e.pts} điểm${e.combo > 1 ? ' · COMBO ×' + e.combo : ''}${e.fast ? ' ⚡' : ''}</div>`);
+  void w.offsetWidth; w.className = 'show';
+  confetti(e.combo >= 3 ? 130 : 80, 540, 900);
+}
+let bt; function banner(t, ms = 4000) { const b = $('banner'); b.textContent = t; b.classList.add('show'); clearTimeout(bt); bt = setTimeout(() => b.classList.remove('show'), ms); }
+
+/* =========================================================
+   ÂM THANH: nhạc nền (WebAudio) + hiệu ứng + giọng bình luận
+   ========================================================= */
+let ctx, master, musicBus, sfxBus, musicEl, duck = 1;
+let M = { enabled: true, volume: .22, track: 'lofi', files: [], links: [] }, lofiTimer = null, curKey = null, mediaNode = null, plIdx = 0;
+let ytPlayer = null, ytApi = null, musicSeq = 0;
+function initAudio() {
+  if (audioOn) return; audioOn = true;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  master = ctx.createGain(); master.connect(ctx.destination);
+  musicBus = ctx.createGain(); musicBus.gain.value = M.enabled ? M.volume : 0; musicBus.connect(master);
+  sfxBus = ctx.createGain(); sfxBus.gain.value = cfg.sfxVolume; sfxBus.connect(master);
+  applyMusic();
+  loadVoice(); speechSynthesis && (speechSynthesis.onvoiceschanged = loadVoice);
+}
+function ytVol() { return Math.max(0, Math.min(100, Math.round(M.volume * 100 * duck))); }
+function setDuck(v) { duck = v; if (musicBus) musicBus.gain.setTargetAtTime((M.enabled ? M.volume : 0) * v, ctx.currentTime, .15); if (ytPlayer && ytPlayer.setVolume) try { ytPlayer.setVolume(ytVol()); } catch (_) {} }
+function stopMusic() {
+  if (lofiTimer) { clearInterval(lofiTimer); lofiTimer = null; }
+  if (musicEl) { musicEl.onended = null; musicEl.pause(); musicEl.removeAttribute('src'); musicEl.load(); musicEl = null; }
+  if (mediaNode) { try { mediaNode.disconnect(); } catch (_) {} mediaNode = null; }
+  if (ytPlayer) { try { ytPlayer.destroy(); } catch (_) {} ytPlayer = null; }
+  const box = document.getElementById('ytbox'); if (box) box.innerHTML = '<div id="ytp"></div>';
+}
+function loadYT() {
+  if (ytApi) return ytApi;
+  ytApi = new Promise((ok, fail) => {
+    if (window.YT && YT.Player) return ok();
+    const prev = window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady = () => { prev && prev(); ok(); };
+    const sc = document.createElement('script'); sc.src = 'https://www.youtube.com/iframe_api'; sc.onerror = () => { ytApi = null; fail(new Error('Không tải được YouTube (mạng?)')); };
+    document.head.appendChild(sc); setTimeout(() => { if (!(window.YT && YT.Player)) { ytApi = null; fail(new Error('YouTube tải quá lâu')); } }, 15000);
+  });
+  return ytApi;
+}
+function reportMusic(msg) { fetch('/api/music/report?msg=' + encodeURIComponent(msg)).catch(() => {}); }
+function playYT(link, seq) {
+  loadYT().then(() => {
+    if (seq !== musicSeq) return;
+    const vars = { autoplay: 1, controls: 0, playsinline: 1, rel: 0, origin: location.origin };
+    const opt = { width: 200, height: 200, playerVars: vars, events: {
+      onReady: (e) => { if (seq !== musicSeq) return; try { e.target.setVolume(ytVol()); if (link.list) e.target.setLoop(true); e.target.playVideo(); } catch (_) {} },
+      onStateChange: (e) => { if (seq === musicSeq && e.data === 0 && !link.list) { try { e.target.seekTo(0); e.target.playVideo(); } catch (_) {} } },
+      onError: (e) => { if (seq !== musicSeq) return; const m = { 2: 'Link YouTube không hợp lệ', 5: 'Lỗi trình phát', 100: 'Video không tồn tại/đã bị ẩn', 101: 'Chủ video không cho phát nhúng', 150: 'Chủ video không cho phát nhúng' }[e.data] || 'Lỗi phát YouTube'; reportMusic(m + ' – ' + (link.title || link.key) + '. Đã chuyển về nhạc lo-fi.'); }
+    } };
+    if (link.list) { vars.listType = 'playlist'; vars.list = link.list; } else { opt.videoId = link.id; vars.loop = 1; vars.playlist = link.id; }
+    ytPlayer = new YT.Player('ytp', opt);
+  }).catch((err) => { if (seq === musicSeq) reportMusic(err.message + '. Đã chuyển về nhạc lo-fi.'); });
+}
+
+function playFile(name, loop, onend) {
+  const el = new Audio('/music/' + encodeURIComponent(name)); el.loop = loop; el.crossOrigin = 'anonymous'; musicEl = el;
+  mediaNode = ctx.createMediaElementSource(el); mediaNode.connect(musicBus); el.onended = onend || null; el.onerror = () => { if (onend) setTimeout(onend, 500); };
+  el.play().catch(() => {});
+}
+function playList() {
+  const fl = M.files || []; if (!fl.length) return startMusic();
+  plIdx = plIdx % fl.length;
+  playFile(fl[plIdx], false, () => { stopMusic(); plIdx++; playList(); });
+}
+function applyMusic() {
+  if (!audioOn) return;
+  musicBus.gain.setTargetAtTime(M.enabled ? M.volume * duck : 0, ctx.currentTime, .1);
+  const files = M.files || [];
+  const yt = (M.links || []).find((l) => l.key === M.track);
+  const key = !M.enabled ? 'off' : M.track === '__all__' ? '__all__' : yt ? yt.key : (M.track !== 'lofi' && files.includes(M.track)) ? M.track : 'lofi';
+  if (key === curKey) { if (ytPlayer && ytPlayer.setVolume) try { ytPlayer.setVolume(ytVol()); } catch (_) {} return; }
+  curKey = key; musicSeq++; stopMusic();
+  if (key === 'off') return;
+  if (key === 'lofi') startMusic(); else if (key === '__all__') playList(); else if (yt) playYT(yt, musicSeq); else playFile(key, true);
+}
+window.__noitu = { get music() { return { curKey, M, el: !!musicEl, paused: musicEl ? musicEl.paused : null, src: musicEl ? musicEl.src : null, lofi: !!lofiTimer }; } };
+
+/* lo-fi loop: Am7 - Fmaj7 - Cmaj7 - G */
+function startMusic() {
+  const bpm = 84, eighth = 60 / bpm / 2;
+  const chords = [[220, 261.63, 329.63, 392], [174.61, 220, 261.63, 329.63], [261.63, 329.63, 392, 493.88], [196, 246.94, 293.66, 392]];
+  const bass = [110, 87.31, 130.81, 98];
+  const noise = ctx.createBuffer(1, ctx.sampleRate * .2, ctx.sampleRate); const nd = noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800; lp.connect(musicBus);
+  const env = (g, t, a, d, peak) => { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); };
+  const tone = (f, t, type, a, d, peak, dest = lp) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = f; env(g, t, a, d, peak); o.connect(g); g.connect(dest); o.start(t); o.stop(t + a + d + .05); };
+  let step = 0, next = ctx.currentTime + .1;
+  const arp = [0, 1, 2, 3, 2, 1, 2, 3];
+  function sched() {
+    while (next < ctx.currentTime + .6) {
+      const bar = Math.floor(step / 8) % 4, s = step % 8, ch = chords[bar];
+      if (s === 0) { ch.forEach((f) => tone(f / 2, next, 'triangle', .5, eighth * 7, .05)); tone(bass[bar], next, 'sine', .02, eighth * 3.5, .22); }
+      if (s === 4) tone(bass[bar], next, 'sine', .02, eighth * 3, .16);
+      tone(ch[arp[s]] * 2, next, 'sine', .01, eighth * 1.6, .07);
+      if (s === 0 || s === 4) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(130, next); o.frequency.exponentialRampToValueAtTime(42, next + .12); env(g, next, .005, .16, .35); o.connect(g); g.connect(musicBus); o.start(next); o.stop(next + .25); }
+      if (s % 2 === 1) { const n = ctx.createBufferSource(), g = ctx.createGain(), hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 6500; n.buffer = noise; env(g, next, .002, .05, .09); n.connect(hp); hp.connect(g); g.connect(musicBus); n.start(next); n.stop(next + .1); }
+      next += eighth; step++;
+    }
+  }
+  lofiTimer = setInterval(sched, 200); sched();
+}
+
+/* hiệu ứng */
+function sfx(kind) {
+  if (!audioOn) return; const t = ctx.currentTime;
+  const note = (f, dt, type = 'sine', d = .25, v = .35) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t + dt); g.gain.linearRampToValueAtTime(v, t + dt + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dt + d); o.connect(g); g.connect(sfxBus); o.start(t + dt); o.stop(t + dt + d + .05); };
+  if (kind === 'correct') [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => note(f, i * .07, 'triangle', .3));
+  if (kind === 'combo') [659.25, 783.99, 987.77, 1318.5, 1567.98].forEach((f, i) => note(f, i * .06, 'square', .25, .18));
+  if (kind === 'hint') { note(880, 0, 'sine', .18); note(880, .22, 'sine', .18); }
+  if (kind === 'skip') { note(330, 0, 'sawtooth', .35, .15); note(247, .18, 'sawtooth', .4, .15); }
+  if (kind === 'join') note(1175, 0, 'sine', .15, .12);
+  if (kind === 'gift') [784, 988, 1175, 1568].forEach((f, i) => note(f, i * .08, 'triangle', .35, .25));
+  if (kind === 'reset') [392, 523, 659, 784, 1047].forEach((f, i) => note(f, i * .09, 'triangle', .4));
+}
+
+/* giọng bình luận (Web Speech API, tiếng Việt) */
+let voice = null, sq = [], speaking = false;
+function loadVoice() { if (!('speechSynthesis' in window)) return; const v = speechSynthesis.getVoices(); voice = v.find((x) => /^vi/i.test(x.lang)) || v.find((x) => /viet/i.test(x.name)) || null; }
+const clean = (s) => { const t = String(s || '').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim(); return t.length >= 2 ? t.slice(0, 22) : 'bạn'; };
+function say(text, prio) {
+  if (!audioOn || !cfg.voice.enabled || !('speechSynthesis' in window)) return;
+  if (prio) { sq = []; speechSynthesis.cancel(); speaking = false; }
+  else if (sq.length >= 2 || (speaking && sq.length >= 1)) return;
+  sq.push(text); pump();
+}
+function pump() {
+  if (speaking || !sq.length) return;
+  const u = new SpeechSynthesisUtterance(sq.shift()); u.lang = 'vi-VN'; if (voice) u.voice = voice;
+  u.rate = cfg.voice.rate || 1; u.pitch = cfg.voice.pitch || 1; u.volume = cfg.voice.volume ?? 1;
+  speaking = true; setDuck(.3);
+  const done = () => { speaking = false; if (!sq.length) setDuck(1); pump(); };
+  u.onend = done; u.onerror = done; speechSynthesis.speak(u);
+}
+const R = (a) => a[Math.floor(Math.random() * a.length)];
+const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
+const L = {
+  correct: ['{name} nhanh tay quá! {word}, cộng {pts} điểm!', 'Chính xác! {name} nối từ {word}!', 'Quá đỉnh! {name} giành chiến thắng lượt này với từ {word}.', '{name} ghi điểm! Từ {word}.', 'Tuyệt vời! {name} nhanh nhất phòng live với từ {word}!'],
+  fast: ['Nhanh như chớp! {name} trả lời chỉ trong {sec} giây!', '{name} phản xạ thần sầu, {sec} giây thôi!'],
+  next: ['Từ tiếp theo bắt đầu bằng {need}.', 'Mọi người nối tiếp từ {need} nào!', 'Tiếp tục nối từ {need}!'],
+  combo3: ['Combo {n}! Cả phòng đang cực kỳ nóng!', 'Combo {n} liên tiếp, quá dữ luôn!'],
+  combo5: ['Không thể cản phá! Combo {n}!', 'Combo {n}! Chuỗi nối từ bùng cháy rồi!'],
+  hint: ['Gợi ý nè! Từ cần tìm bắt đầu bằng chữ {c}.', 'Chưa ai trả lời hả? Gợi ý chữ cái đầu là {c}.'],
+  skip: ['Hết giờ rồi! Hệ thống nối giúp: {word}. Mọi người tiếp tục nhé!', 'Không ai trả lời kịp, hệ thống chọn từ {word}.'],
+  start: ['Chào mừng đến với Nối từ đại chiến! Hãy comment từ ghép hai chữ bắt đầu bằng {need} để ghi điểm!'],
+  reset: ['Ván mới bắt đầu! Từ đầu tiên là {word}. Nối tiếp bằng {need} nhé!'],
+  join: ['Chào {name} đã vào phòng!', 'Xin chào {name}, vào nối từ cùng mọi người nào!', '{name} vừa vào phòng, chào mừng bạn!'],
+  gift: ['Cảm ơn {name} đã tặng {gift}!', 'Wow! {name} tặng {gift}, cảm ơn bạn nhiều!'],
+  milestone: ['Chuỗi nối từ đã đạt {n} từ rồi, quá xuất sắc!']
+};
+
+/* ---------- SSE ---------- */
+let lastJoinSay = 0, firstState = true;
+function connect() {
+  const es = new EventSource('/events');
+  es.onmessage = (ev) => {
+    const d = JSON.parse(ev.data);
+    switch (d.type) {
+      case 'state': applyState(d, false, true); if (firstState) { firstState = false; } break;
+      case 'status': setStatus(d.status); break;
+      case 'music': M = { ...M, ...d.music }; applyMusic(); break;
+      case 'correct': {
+        const e = d.entry; applyState(d, true, true); showWinner(e);
+        sfx(e.combo >= 3 ? 'combo' : 'correct');
+        const line = [fmt(R(L.correct), { name: clean(e.name), word: e.word, pts: e.pts })];
+        if (e.fast && Math.random() < .5) line[0] = fmt(R(L.fast), { name: clean(e.name), sec: Math.max(1, Math.round(e.took)) }) + ' Từ ' + e.word + '.';
+        if (e.combo >= 5) line.push(fmt(R(L.combo5), { n: e.combo })); else if (e.combo >= 3) line.push(fmt(R(L.combo3), { n: e.combo }));
+        if (d.stats.turns % 10 === 0) line.push(fmt(R(L.milestone), { n: d.stats.turns }));
+        line.push(fmt(R(L.next), { need: d.need }));
+        say(line.join(' '), true); break;
+      }
+      case 'hint': $('hint').textContent = 'GỢI Ý: ' + d.text.toUpperCase(); sfx('hint'); say(fmt(R(L.hint), { c: d.firstLetter }), false); break;
+      case 'skip': applyState(d, true, true); sfx('skip'); say(fmt(R(L.skip), { word: d.word }) + ' ' + fmt(R(L.next), { need: d.need }), true); break;
+      case 'reset': applyState(d, true, true); sfx('reset'); banner('🔄 VÁN MỚI!', 3000);
+        say(fmt(firstState || d.reason === 'start' ? R(L.start) : R(L.reset), { need: d.need, word: d.chain[d.chain.length - 1].word }), true); break;
+      case 'join': if (cfg.welcome !== false && Date.now() - lastJoinSay > 12000) { lastJoinSay = Date.now(); banner('👋 Chào ' + d.name + ' vào phòng!', 3000); sfx('join'); say(fmt(R(L.join), { name: clean(d.name) }), false); } break;
+      case 'gift': banner('🎁 ' + d.name + ' tặng ' + d.gift + (d.count > 1 ? ' ×' + d.count : ''), 4500); sfx('gift'); confetti(60, 540, 700); say(fmt(R(L.gift), { name: clean(d.name), gift: d.gift }), false); break;
+    }
+  };
+  es.onerror = () => setStatus('connecting');
+}
+
+/* ---------- start ---------- */
+$('start').addEventListener('click', () => { initAudio(); $('start').remove(); sfx('reset'); });
+if (new URLSearchParams(location.search).has('nosound')) $('start').remove();
+connect();
+})();
+</script>
+</body>
+</html>

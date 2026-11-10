@@ -1,0 +1,14 @@
+{
+  "name": "noitu-live",
+  "version": "1.0.0",
+  "description": "Game Nối Từ Đại Chiến cho TikTok Live - người đúng sớm nhất thắng",
+  "main": "server.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js demo"
+  },
+  "dependencies": {
+    "tiktok-live-connector": ">=1.2.3"
+  }
+}

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: noitu-live
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: TIKTOK_USERNAME
+        sync: false        # nhập tên kênh TikTok trên dashboard Render
